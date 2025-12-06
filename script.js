@@ -15,8 +15,28 @@ class Seesaw {
     }
 
     init() {
+        this.plank.addEventListener('mousemove', (e) => this.handle_hover(e));
+        
+        this.plank.addEventListener('mouseleave', () => {
+            this.ghost.style.opacity = '0';
+        });
+
         this.plank.addEventListener('click', (e) => this.handle_click(e));
+        
         this.update_next_ui();
+    }
+
+    handle_hover(e) {
+        this.ghost.style.opacity = '1';
+        
+        let rect = this.plank.getBoundingClientRect();
+        let x = e.clientX - rect.left;
+        
+        if (x < 20) x = 20;
+        if (x > 580) x = 580;
+
+        this.ghost.style.left = x + 'px';
+        this.ghost.innerText = this.next_weight;
     }
 
     handle_click(e) {
@@ -31,6 +51,7 @@ class Seesaw {
 
         this.next_weight = this.get_random_w();
         this.update_next_ui();
+        this.ghost.innerText = this.next_weight;
     }
 
     add_item(w, d) {
