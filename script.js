@@ -3,7 +3,11 @@ class Seesaw {
         this.items = [];
         this.plank = document.getElementById('thePlank');
         this.ghost = document.getElementById('ghostBox');
+        
         this.ui_next = document.getElementById('nextWeight');
+        this.ui_left = document.getElementById('leftWeight');
+        this.ui_right = document.getElementById('rightWeight');
+        this.ui_angle = document.getElementById('tiltAngle');
         
         this.next_weight = this.get_random_w();
         
@@ -42,6 +46,39 @@ class Seesaw {
         el.style.backgroundColor = '#' + col;
 
         this.plank.appendChild(el);
+
+        this.run_physics();
+    }
+
+    run_physics() {
+        let t_left = 0; 
+        let t_right = 0; 
+        let w_left = 0; 
+        let w_right = 0; 
+
+        for(let item of this.items) {
+            let torque = item.w * Math.abs(item.d);
+
+            if(item.d < 0) {
+                t_left += torque;
+                w_left += item.w;
+            } else {
+                t_right += torque;
+                w_right += item.w;
+            }
+        }
+
+        this.ui_left.innerText = w_left.toFixed(1) + ' kg';
+        this.ui_right.innerText = w_right.toFixed(1) + ' kg';
+
+        let net = t_right - t_left;
+        let deg = net / 50; 
+
+        if(deg > 30) deg = 30;
+        if(deg < -30) deg = -30;
+
+        this.ui_angle.innerText = deg.toFixed(1) + '°';
+        this.plank.style.transform = `rotate(${deg}deg)`;
     }
 
     get_random_w() {

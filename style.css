@@ -79,6 +79,7 @@ body {
     cursor: pointer; 
     transition: transform 0.3s cubic-bezier(0.25, 1, 0.5, 1); 
     transform-origin: center center;
+        bottom:7rem; 
 }
 
 .triangle-support {
@@ -88,7 +89,7 @@ body {
     border-right: 25px solid transparent;
     border-bottom: 60px solid #1e293b; 
     position: absolute;
-    bottom:-2rem; 
+    bottom:5rem; 
     z-index: 1;
 }
 
