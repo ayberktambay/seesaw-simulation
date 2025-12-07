@@ -11,6 +11,7 @@ class Seesaw {
         this.ui_left = document.getElementById('leftWeight');
         this.ui_right = document.getElementById('rightWeight');
         this.ui_angle = document.getElementById('tiltAngle');
+        this.log_list = document.getElementById('actionLog');
         
         this.audioCtx = null;
         this.next_weight = this.get_random_w();
@@ -81,6 +82,9 @@ class Seesaw {
 
     add_item(w, d, from_storage = false) {
         this.items.push({ w: w, d: d });
+        if (!from_storage) {
+            this.add_log(w, d);
+        }
 
         let el = document.createElement('div');
         el.className = 'weight-box';
@@ -101,6 +105,20 @@ class Seesaw {
 
         this.run_physics();
     }
+    // LOGGING FUNCTION
+    add_log(w, d) {
+        let side = d < 0 ? 'Left' : 'Right';
+        let className = d < 0 ? 'left' : 'right';
+        
+        let li = document.createElement('li');
+        li.innerHTML = `
+            <span>Added <b>${w}kg</b></span>
+            <span class="side-badge ${className}">${side}</span>
+        `;
+        
+        // Add new log to the TOP
+        this.log_list.prepend(li);
+    }
     undo_last() {
         if (this.items.length === 0) return;
 
@@ -109,6 +127,11 @@ class Seesaw {
         let boxes = this.plank.querySelectorAll('.weight-box');
         if (boxes.length > 0) {
             boxes[boxes.length - 1].remove();
+        }
+
+        // Remove from Log 
+        if (this.log_list.firstElementChild) {
+            this.log_list.firstElementChild.remove();
         }
 
         this.run_physics();
@@ -149,8 +172,10 @@ class Seesaw {
         this.plank.style.transform = `rotate(${deg}deg)`;
     }
 
-    save_state() {
+   save_state() {
+      
         localStorage.setItem('seesaw_data', JSON.stringify(this.items));
+        localStorage.setItem('seesaw_log', this.log_list.innerHTML);
     }
 
     load_state() {
@@ -160,6 +185,11 @@ class Seesaw {
             parsed.forEach(item => {
                 this.add_item(item.w, item.d, true);
             });
+        }
+
+        let logData = localStorage.getItem('seesaw_log');
+        if (logData) {
+            this.log_list.innerHTML = logData;
         }
     }
 
@@ -175,6 +205,8 @@ class Seesaw {
         // remove only weight boxes, keep ghost
         let boxes = document.querySelectorAll('.weight-box');
         boxes.forEach(b => b.remove());
+
+        this.log_list.innerHTML = '';
 
         this.plank.style.transform = 'rotate(0deg)';
         this.run_physics();

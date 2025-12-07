@@ -7,8 +7,8 @@
     <link rel="stylesheet" href="style.css">
 </head>
 <body>
+    
     <div class="card">
-
         <div id="stats">
             <div class="stat-item">
                 <small>LEFT WEIGHT</small>
@@ -37,13 +37,19 @@
             </div>
             <div class="triangle-support"></div>
         </div>
-
     </div>
     
-        <div class="controls">
-            <button class="undo-btn" id="btn-undo">Undo </button>
-            <button class="rst-btn" id="btn-reset">Reset Seesaw</button>
-        </div>
+    <div class="controls">
+        <button class="undo-btn" id="btn-undo">Undo</button>
+        <button class="rst-btn" id="btn-reset">Reset Seesaw</button>
+    </div>
+
+    <div class="log-wrapper">
+        <div class="log-title">ACTION LOG</div>
+        <ul id="actionLog">
+            </ul>
+    </div>
+
     <script src="script.js"></script>
 </body>
 </html>
