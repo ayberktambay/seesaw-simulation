@@ -140,77 +140,76 @@ class Seesaw {
         this.ghost.style.fontSize = (size * 0.32) + 'px';
         this.ghost.style.borderRadius = (size * 0.15) + 'px';
     }
+  handle_click(e) {
+    if (this.isPaused || this.isFalling) return;
 
-    handle_click(e) {
-        // busy check
-        if (this.isPaused || this.isFalling) return;
-
-        if (!this.audioCtx) {
-            this.audioCtx = new (window.AudioContext || window.webkitAudioContext)();
-        }
-
-        this.isFalling = true; 
-
-        // calc positions
-        let cRect = this.container.getBoundingClientRect();
-        let startX = e.clientX - cRect.left;
-        let startY = e.clientY - cRect.top;
-        
-        let cWidth = cRect.width;
-        let pWidth = this.plank.offsetWidth;
-        let gap = (cWidth - pWidth) / 2;
-        let minX = gap + 22;
-        let maxX = cWidth - gap - 22;
-        
-        let constrainedX = startX;
-        if (constrainedX < minX) constrainedX = minX;
-        if (constrainedX > maxX) constrainedX = maxX;
-
-        let dist = constrainedX - (cWidth / 2);
-        let w = this.next_weight;
-        let color = '#' + Math.floor(Math.random()*16777215).toString(16);
-
-        // temp box for anim
-        let tempEl = document.createElement('div');
-        tempEl.className = 'weight-box temp-falling-box';
-        tempEl.innerText = w;
-        tempEl.style.left = constrainedX + 'px';
-        tempEl.style.top = startY + 'px';
-        tempEl.style.backgroundColor = color;
-        this.apply_box_size(tempEl, w); 
-        this.container.appendChild(tempEl);
-
-        // calc drop distance
-        let ghostRect = this.ghost.getBoundingClientRect();
-        let fallDistance = (ghostRect.top - cRect.top) - startY + 30; 
-
-        // drop animation
-        let fallAnim = tempEl.animate([
-            { transform: `translate(-50%, 0)` },
-            { transform: `translate(-50%, ${fallDistance}px)` }
-        ], {
-            duration: 1000, 
-            easing: 'linear', 
-            fill: 'forwards'
-        });
-
-        // on finish
-        fallAnim.onfinish = () => {
-            tempEl.remove();
-            
-            // add real box
-            this.add_item(w, dist, color);
-            this.play_sound('drop');
-            
-            // reset next
-            this.next_weight = this.get_random_w();
-            this.update_next_ui();
-            this.ghost.innerText = this.next_weight;
-            
-            this.isFalling = false;
-            this.save_state();
-        };
+    if (!this.audioCtx) {
+        this.audioCtx = new (window.AudioContext || window.webkitAudioContext)();
     }
+
+    this.isFalling = true;
+
+    let cRect = this.container.getBoundingClientRect();
+    let startX = e.clientX - cRect.left;
+    let startY = e.clientY - cRect.top;
+
+    let cWidth = cRect.width;
+    let pWidth = this.plank.offsetWidth;
+    let gap = (cWidth - pWidth) / 2;
+    let minX = gap + 22;
+    let maxX = cWidth - gap - 22;
+
+    let constrainedX = Math.min(Math.max(startX, minX), maxX);
+    let dist = constrainedX - cWidth / 2;
+
+    let w = this.next_weight;
+    let color = '#' + Math.floor(Math.random() * 16777215).toString(16);
+
+    let temp = document.createElement("div");
+    temp.className = "weight-box temp-falling-box";
+    temp.innerText = w;
+    temp.style.left = constrainedX + "px";
+    temp.style.top = startY + "px";
+    temp.style.backgroundColor = color;
+    this.apply_box_size(temp, w);
+    this.container.appendChild(temp);
+
+    // --- compute final Y with tilt ---
+    let plankRect = this.plank.getBoundingClientRect();
+    let baseY = plankRect.top - cRect.top;
+    let ang = this.currentAngle * Math.PI / 180;
+    let yTilt = Math.sin(ang) * dist;
+    let targetY = baseY + yTilt;
+
+    let fallDist = targetY - startY;
+
+    // --- smooth constant-like fall ---
+    let anim = temp.animate(
+        [
+            { transform: "translateY(0)" },
+            { transform: `translateY(${fallDist}px)` }
+        ],
+        {
+            duration: Math.abs(fallDist) * 4, 
+            easing: "linear", 
+            fill: "forwards"
+        }
+    );
+
+    anim.onfinish = () => {
+        temp.remove();
+        this.add_item(w, dist, color);
+        this.play_sound("drop");
+
+        this.next_weight = this.get_random_w();
+        this.update_next_ui();
+        this.ghost.innerText = this.next_weight;
+
+        this.isFalling = false;
+        this.save_state();
+    };
+}
+
 
     add_item(w, d, color, from_storage = false) {
         this.items.push({ w: w, d: d, color: color });

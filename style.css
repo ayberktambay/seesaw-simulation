@@ -6,7 +6,7 @@ body {
     align-items: center;
     min-height: 100vh;
     margin: 0;
-    padding-top: 50px;
+    padding-top: 10px;
     padding-bottom: 50px;
     user-select: none;
     overflow-x: hidden;
@@ -23,12 +23,12 @@ body {
 }
 
 #stats {
-    padding: 20px 30px;
+    padding: 1rem;
     border-radius: 12px;
     display: flex;
     justify-content: space-between;
     flex-wrap: wrap;
-    gap: 20px;
+    gap: 1rem;
 }
 
 .stat-item {
@@ -71,7 +71,7 @@ body {
     position: relative;
     width: 90%;
     max-width: 800px;
-    height: clamp(250px, 40vw, 350px);
+    height: clamp(350px, 60vh, 550px);
     display: flex;
     justify-content: center;
     align-items: flex-end;
@@ -240,7 +240,7 @@ button:active {
     list-style: none;
     padding: 0;
     margin: 0;
-    max-height: 150px;
+    max-height: 10rem;
     overflow-y: auto;
     border: 1px solid #e2e8f0;
     border-radius: 12px;
@@ -248,9 +248,9 @@ button:active {
 }
 
 #actionLog li {
-    padding: 10px 20px;
-    border-bottom: 1px solid #f1f5f9;
-    font-size: 0.9rem;
+    padding: .5rem 1rem;
+    border-bottom: 1px solid #dbdbdb;
+    font-size: 0.8rem;
     color: #475569;
     display: flex;
     justify-content: space-between;
