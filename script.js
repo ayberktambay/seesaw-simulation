@@ -1,8 +1,10 @@
 class Seesaw {
     constructor() {
         this.items = [];
+        this.container = document.getElementById('seesawContainer');
         this.plank = document.getElementById('thePlank');
         this.ghost = document.getElementById('ghostBox');
+        this.triangle = document.querySelector('.triangle-support');
         
         // Buttons
         this.resetBtn = document.getElementById('btn-reset');
@@ -22,6 +24,7 @@ class Seesaw {
         this.next_weight = this.get_random_w();
         this.isPaused = false;
         this.isMuted = false;
+        this.currentDropHeight = 0;
         
         this.init();
     }
@@ -29,13 +32,13 @@ class Seesaw {
     init() {
         this.load_state();
 
-        this.plank.addEventListener('mousemove', (e) => this.handle_hover(e));
+        this.container.addEventListener('mousemove', (e) => this.handle_hover(e));
         
-        this.plank.addEventListener('mouseleave', () => {
+        this.container.addEventListener('mouseleave', () => {
             this.ghost.style.opacity = '0';
         });
 
-        this.plank.addEventListener('click', (e) => this.handle_click(e));
+        this.container.addEventListener('click', (e) => this.handle_click(e));
         
         this.resetBtn.addEventListener('click', () => this.reset_all());
         this.undoBtn.addEventListener('click', () => this.undo_last());
@@ -45,32 +48,30 @@ class Seesaw {
         this.update_next_ui();
     }
 
-   toggle_pause() {
-        this.isPaused = !this.isPaused;
-        const span = this.pauseBtn.querySelector('span') || this.pauseBtn;
-        const iconPath = document.getElementById('icon-pause');
-        
-        // SVG Paths
-        const iconPlay = "M8 5v14l11-7z";
-        const iconPause = "M6 19h4V5H6v14zm8-14v14h4V5h-4z";
+    toggle_pause() {
+    this.isPaused = !this.isPaused;
+    const span = this.pauseBtn.querySelector('span') || this.pauseBtn;
+    const iconPath = document.getElementById('icon-pause');
+    const iconPlay = "M8 5v14l11-7z";
+    const iconPause = "M6 19h4V5H6v14zm8-14v14h4V5h-4z";
 
-        if (this.isPaused) {
-            span.innerText = "Resume";
-            // Change to Play Icon
-            if(iconPath) iconPath.setAttribute('d', iconPlay);
-            
-            this.pauseBtn.classList.add('active');
-            this.plank.style.cursor = 'not-allowed';
-            this.ghost.style.opacity = '0';
-        } else {
-            span.innerText = "Pause";
-            // Change back to Pause Icon
-            if(iconPath) iconPath.setAttribute('d', iconPause);
-            
-            this.pauseBtn.classList.remove('active');
-            this.plank.style.cursor = 'pointer';
-        }
+    if (this.isPaused) {
+        span.innerText = "Resume";
+        if(iconPath) iconPath.setAttribute('d', iconPlay);
+        this.pauseBtn.classList.add('active');
+        this.container.style.cursor = 'not-allowed';
+    } else {
+        span.innerText = "Pause";
+        if(iconPath) iconPath.setAttribute('d', iconPause);
+        this.pauseBtn.classList.remove('active');
+        this.container.style.cursor = 'crosshair';
+
+        // 
+        this.items.forEach(item => {
+            if (item.falling) this.animate_fall(item.el, item.y);
+        });
     }
+}
 
     toggle_mute() {
         this.isMuted = !this.isMuted;
@@ -89,54 +90,83 @@ class Seesaw {
             this.muteBtn.classList.add('active');
         } else {
             span.innerText = "Mute";
-            // Change to Sound Icon (Waves)
             if(iconPath) iconPath.setAttribute('d', iconSoundOn);
-            
             this.muteBtn.classList.remove('active');
         }
     }
 
-    handle_hover(e) {
-        // Stop if paused
+     handle_hover(e) {
         if (this.isPaused) return;
 
         this.ghost.style.opacity = '1';
         
-        let rect = this.plank.getBoundingClientRect();
-        let x = e.clientX - rect.left;
+        let cRect = this.container.getBoundingClientRect();
+        let pRect = this.plank.getBoundingClientRect();
         
-        let minX = 22;
-        let maxX = rect.width - 22;
+        let mouseX = e.clientX - cRect.left;
+        let mouseY = e.clientY - cRect.top;
 
-        if (x < minX) x = minX;
-        if (x > maxX) x = maxX;
+        let pWidth = this.plank.offsetWidth;
+        let cWidth = cRect.width;
+        let gap = (cWidth - pWidth) / 2;
 
-        this.ghost.style.left = x + 'px';
+        let minX = gap + 22; 
+        let maxX = cWidth - gap - 22;
+
+        if (mouseX < minX) mouseX = minX;
+        if (mouseX > maxX) mouseX = maxX;
+
+        this.ghost.style.left = (mouseX - 22) + 'px';
+        this.ghost.style.top = (mouseY - 22) + 'px'; 
         this.ghost.innerText = this.next_weight;
-    }
 
+        let size = this.mapRange(this.next_weight, 1, 10, 24, 48);
+        this.ghost.style.width = size + 'px';
+        this.ghost.style.height = size + 'px';
+        this.ghost.style.lineHeight = size + 'px';
+        this.ghost.style.fontSize = (size * 0.32) + 'px';
+        this.ghost.style.borderRadius = (size * 0.15) + 'px';
+
+        this.currentDropHeight = mouseY;
+
+        let dropLine = document.getElementById('dropLine');
+        if (!dropLine) {
+            dropLine = document.createElement('div');
+            dropLine.id = 'dropLine';
+            dropLine.className = 'drop-indicator';
+            this.container.appendChild(dropLine);
+        }
+
+        let plankTop = pRect.top - cRect.top;
+        dropLine.style.left = mouseX + 'px';
+        dropLine.style.top = mouseY + 'px';
+        dropLine.style.height = (plankTop - mouseY + 24) + 'px';
+        dropLine.style.opacity = '1';
+    }
     handle_click(e) {
-        // Stop if paused
         if (this.isPaused) return;
 
         if (!this.audioCtx) {
             this.audioCtx = new (window.AudioContext || window.webkitAudioContext)();
         }
 
-        let rect = this.plank.getBoundingClientRect();
-        let x = e.clientX - rect.left;
-        let center = rect.width / 2;
-        let minX = 22;
-        let maxX = rect.width - 22;
+        let cRect = this.container.getBoundingClientRect();
+        let mouseX = e.clientX - cRect.left;
+        let cWidth = cRect.width;
+        
+        let pWidth = this.plank.offsetWidth;
+        let gap = (cWidth - pWidth) / 2;
+        let minX = gap + 22;
+        let maxX = cWidth - gap - 22;
 
-        if (x < minX) x = minX;
-        if (x > maxX) x = maxX;
+        if (mouseX < minX) mouseX = minX;
+        if (mouseX > maxX) mouseX = maxX;
 
-        let dist = x - center;
+        let dist = mouseX - (cWidth / 2);
         let w = this.next_weight;
 
-        this.add_item(w, dist);
-        this.play_sound('drop');
+        this.add_item(w, dist, false, this.currentDropHeight);
+                
 
         this.next_weight = this.get_random_w();
         this.update_next_ui();
@@ -145,7 +175,7 @@ class Seesaw {
         this.save_state();
     }
 
-    add_item(w, d, from_storage = false) {
+    add_item(w, d, from_storage = false, dropHeight = 100) {
         this.items.push({ w: w, d: d });
 
         if (!from_storage) {
@@ -168,14 +198,31 @@ class Seesaw {
         el.style.height = size + 'px';
         el.style.lineHeight = size + 'px';
         el.style.fontSize = (size * 0.32) + 'px';
-        el.style.borderRadius = (size * 0.15) + 'px';
+        el.style.borderRadius =  '360px';
+
+        this.plank.appendChild(el);
 
         if (from_storage) {
             el.style.animation = 'none';
-        }
+            this.run_physics();
+        } else {
+            // Dynamic Drop Calculation
+            let ghostRect = this.ghost.getBoundingClientRect();
+            let boxRect = el.getBoundingClientRect();
+            
+            let deltaY = -200; 
+            if (ghostRect.top > 0 && ghostRect.top < boxRect.top) {
+                deltaY = ghostRect.top - boxRect.top;
+            }
+            
+            el.style.setProperty('--drop-start', `${deltaY}px`);
 
-        this.plank.appendChild(el);
-        this.run_physics();
+            
+            el.addEventListener('animationend', () => {
+                this.run_physics();
+                this.play_sound('drop');
+            }, { once: true });
+        }
     }
 
     mapRange(value, inMin, inMax, outMin, outMax) {
@@ -196,9 +243,7 @@ class Seesaw {
     }
 
     undo_last() {
-        // Stop if paused (optional choice, but logical)
         if (this.isPaused) return;
-
         if (this.items.length === 0) return;
 
         this.items.pop();
@@ -245,6 +290,12 @@ class Seesaw {
 
         this.ui_angle.innerText = deg.toFixed(1) + '°';
         this.plank.style.transform = `rotate(${deg}deg)`;
+
+        if (Math.abs(deg) < 2 && this.items.length > 0) {
+            this.triangle.classList.add('balanced');
+        } else {
+            this.triangle.classList.remove('balanced');
+        }
     }
 
     save_state() {
@@ -268,7 +319,6 @@ class Seesaw {
     }
 
     reset_all() {
-        // Can reset even if paused, but let's unpause to be safe
         if (this.isPaused) this.toggle_pause();
 
         if (!this.audioCtx) {
