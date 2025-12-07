@@ -96,6 +96,14 @@ class Seesaw {
         let col = Math.floor(Math.random()*16777215).toString(16);
         el.style.backgroundColor = '#' + col;
 
+        //dynamic box size
+        let size = this.mapRange(w, 1, 10, 24, 48);
+        el.style.width = size + 'px';
+        el.style.height = size + 'px';
+        el.style.lineHeight = size + 'px';
+        el.style.fontSize = (size * 0.32) + 'px';
+        el.style.borderRadius = (size * 0.15) + 'px';
+
         // skip animation if loading from storage
         if (from_storage) {
             el.style.animation = 'none';
@@ -104,6 +112,9 @@ class Seesaw {
         this.plank.appendChild(el);
 
         this.run_physics();
+    }
+    mapRange(value, inMin, inMax, outMin, outMax) {
+    return outMin + (value - inMin) * (outMax - outMin) / (inMax - inMin);
     }
     // LOGGING FUNCTION
     add_log(w, d) {
