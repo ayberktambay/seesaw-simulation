@@ -6,6 +6,8 @@ body {
     align-items: center;
     min-height: 100vh;
     margin: 0;
+    padding-top: 50px;
+    padding-bottom: 50px;
     user-select: none;
     overflow-x: hidden;
 }
@@ -124,20 +126,12 @@ body {
     border-radius: 6px;
     box-shadow: 0 4px 6px rgba(0,0,0,0.2);
     pointer-events: none;
-    
-    animation: dropIn 1s cubic-bezier(0.6, 0.04, 0.98, 0.335) forwards;
     z-index: 10;
 }
 
-@keyframes dropIn {
-    0% { 
-        transform: translate(-50%, var(--drop-start)); 
-        opacity: 1; 
-    }
-    100% { 
-        transform: translate(-50%, 0); 
-        opacity: 1; 
-    }
+.temp-falling-box {
+    z-index: 100; 
+    box-shadow: 0 10px 15px rgba(0,0,0,0.3);
 }
 
 .preview-box {
