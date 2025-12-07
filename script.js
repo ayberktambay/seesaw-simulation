@@ -33,12 +33,15 @@ class Seesaw {
 
     handle_hover(e) {
         this.ghost.style.opacity = '1';
-        
+
         let rect = this.plank.getBoundingClientRect();
         let x = e.clientX - rect.left;
-        
-        if (x < 20) x = 20;
-        if (x > 580) x = 580;
+
+        let minX = 22;
+        let maxX = rect.width - 22;
+
+        if (x < minX) x = minX;
+        if (x > maxX) x = maxX;
 
         this.ghost.style.left = x + 'px';
         this.ghost.innerText = this.next_weight;
@@ -53,8 +56,14 @@ class Seesaw {
         let rect = this.plank.getBoundingClientRect();
         let x = e.clientX - rect.left;
         let center = rect.width / 2;
-        let dist = x - center;
 
+        let minX = 22;
+        let maxX = rect.width - 22;
+
+        if (x < minX) x = minX;
+        if (x > maxX) x = maxX;
+
+        let dist = x - center;
         let w = this.next_weight;
 
         this.add_item(w, dist);
