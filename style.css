@@ -145,6 +145,31 @@ body {
     display: flex;
     justify-content: center;
 }
+.undo-btn {
+    background-color: #96a4a0; 
+    color: white;
+    border: none;
+    padding: 12px 35px;
+    border-radius: 30px;
+    cursor: pointer;
+    font-size: 14px;
+    font-weight: 700;
+    letter-spacing: 0.5px;
+    box-shadow: 0 4px 10px rgba(119, 119, 118, 0.3);
+    transition: all 0.2s ease;
+    margin-right: 15px;
+}
+
+.undo-btn:hover {
+    background-color: #a2a2a2; 
+    transform: translateY(-2px);
+    box-shadow: 0 6px 15px rgba(176, 176, 176, 0.4);
+}
+
+.undo-btn:active {
+    transform: translateY(0);
+    box-shadow: 0 2px 5px rgba(245, 158, 11, 0.3);
+}
 
 .rst-btn {
     background-color: #e22626;
@@ -201,5 +226,21 @@ body {
         border-right-width: 18px;
         border-bottom-width: 45px;
         bottom: 3rem;
+    }
+}
+@media (max-width: 450px) {
+    .controls {
+        flex-direction: column; 
+        gap: 10px;
+        align-items: center;
+    }
+    
+    .undo-btn {
+        margin-right: 0;
+        width: 80%; 
+    }
+    
+    .rst-btn {
+        width: 80%;
     }
 }

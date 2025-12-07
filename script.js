@@ -3,8 +3,10 @@ class Seesaw {
         this.items = [];
         this.plank = document.getElementById('thePlank');
         this.ghost = document.getElementById('ghostBox');
-        this.resetBtn = document.getElementById('btn-reset');
         
+        this.resetBtn = document.getElementById('btn-reset');
+        this.undoBtn = document.getElementById('btn-undo');
+
         this.ui_next = document.getElementById('nextWeight');
         this.ui_left = document.getElementById('leftWeight');
         this.ui_right = document.getElementById('rightWeight');
@@ -27,7 +29,8 @@ class Seesaw {
 
         this.plank.addEventListener('click', (e) => this.handle_click(e));
         this.resetBtn.addEventListener('click', () => this.reset_all());
-        
+        this.undoBtn.addEventListener('click', () => this.undo_last());
+
         this.update_next_ui();
     }
 
@@ -98,7 +101,19 @@ class Seesaw {
 
         this.run_physics();
     }
+    undo_last() {
+        if (this.items.length === 0) return;
 
+        this.items.pop();
+
+        let boxes = this.plank.querySelectorAll('.weight-box');
+        if (boxes.length > 0) {
+            boxes[boxes.length - 1].remove();
+        }
+
+        this.run_physics();
+        this.save_state();
+    }
     run_physics() {
         let t_left = 0; 
         let t_right = 0; 
